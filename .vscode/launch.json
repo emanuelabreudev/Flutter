@@ -1,0 +1,11 @@
+{
+  "configurations": [
+    {
+      "name": "Flutter (lib/features/data/repositories/clientes.dart)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "farmaup_client",
+      "program": "lib/features/data/repositories/clientes.dart"
+    }
+  ]
+}

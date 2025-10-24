@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class StatusBadge extends StatelessWidget {
   final bool ativo;
+
   const StatusBadge({Key? key, required this.ativo}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final color = ativo ? const Color(0xFFDFF6E9) : const Color(0xFFF1F2F5);
-    final textColor = ativo ? const Color(0xFF19964F) : const Color(0xFF8D94A1);
+    final color = ativo
+        ? AppColors.activeBackground
+        : AppColors.inactiveBackground;
+    final textColor = ativo ? AppColors.activeText : AppColors.inactiveText;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

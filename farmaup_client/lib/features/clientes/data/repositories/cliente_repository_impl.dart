@@ -1,81 +1,215 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import '../../../../core/config/api_config.dart';
+import '../../../../core/exceptions/api_exceptions.dart';
 import '../../domain/entities/cliente.dart';
 import '../../domain/repositories/cliente_repository.dart';
+import '../models/cliente_model.dart';
 
 class ClienteRepositoryImpl implements ClienteRepository {
-  final List<Cliente> _clientes = [
-    Cliente(
-      nome: 'Maria Silva Santos',
-      email: 'maria.silva@email.com',
-      telefone: '(11) 98765-4321',
-      cidade: 'São Paulo - SP',
-      ativo: true,
-      dataCadastro: DateTime(2025, 1, 14),
-    ),
-    Cliente(
-      nome: 'João Pedro Oliveira',
-      email: 'joao.pedro@email.com',
-      telefone: '(21) 99876-5432',
-      cidade: 'Rio de Janeiro - RJ',
-      ativo: true,
-      dataCadastro: DateTime(2025, 2, 3),
-    ),
-    Cliente(
-      nome: 'Ana Carolina Costa',
-      email: 'ana.costa@email.com',
-      telefone: '(31) 97654-3210',
-      cidade: 'Belo Horizonte - MG',
-      ativo: true,
-      dataCadastro: DateTime(2025, 3, 8),
-    ),
-    Cliente(
-      nome: 'Carlos Eduardo Mendes',
-      email: 'carlos.mendes@email.com',
-      telefone: '(41) 96543-2109',
-      cidade: 'Curitiba - PR',
-      ativo: false,
-      dataCadastro: DateTime(2025, 4, 1),
-    ),
-    Cliente(
-      nome: 'Juliana Almeida',
-      email: 'juliana.almeida@email.com',
-      telefone: '(51) 95432-1098',
-      cidade: 'Porto Alegre - RS',
-      ativo: true,
-      dataCadastro: DateTime(2025, 5, 10),
-    ),
-  ];
+  final http.Client _client;
+
+  ClienteRepositoryImpl({http.Client? client})
+    : _client = client ?? http.Client();
 
   @override
-  List<Cliente> getAllClientes() => List.unmodifiable(_clientes);
+  Future<List<Cliente>> getAllClientes() async {
+    try {
+      final response = await _client
+          .get(
+            Uri.parse(ApiConfig.clientesEndpoint),
+            headers: ApiConfig.headers,
+          )
+          .timeout(ApiConfig.timeout);
 
-  @override
-  void addCliente(Cliente cliente) {
-    _clientes.add(cliente);
-  }
-
-  @override
-  void updateCliente(int index, Cliente cliente) {
-    if (index >= 0 && index < _clientes.length) {
-      _clientes[index] = cliente;
+      return _handleResponse<List<Cliente>>(
+        response,
+        onSuccess: (data) {
+          final clientesJson = data['data'] as List;
+          return clientesJson
+              .map((json) => ClienteModel.fromJson(json).toEntity())
+              .toList();
+        },
+      );
+    } on SocketException {
+      throw NetworkException();
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Erro ao buscar clientes: $e');
     }
   }
 
   @override
-  void deleteCliente(int index) {
-    if (index >= 0 && index < _clientes.length) {
-      _clientes.removeAt(index);
+  Future<Cliente> getClienteById(int id) async {
+    try {
+      final response = await _client
+          .get(
+            Uri.parse('${ApiConfig.clientesEndpoint}/$id'),
+            headers: ApiConfig.headers,
+          )
+          .timeout(ApiConfig.timeout);
+
+      return _handleResponse<Cliente>(
+        response,
+        onSuccess: (data) => ClienteModel.fromJson(data['data']).toEntity(),
+      );
+    } on SocketException {
+      throw NetworkException();
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Erro ao buscar cliente: $e');
     }
   }
 
   @override
-  List<Cliente> searchClientes(String query) {
-    if (query.trim().isEmpty) return getAllClientes();
+  Future<Cliente> addCliente(Cliente cliente) async {
+    try {
+      final clienteModel = ClienteModel.fromEntity(cliente);
+      final body = jsonEncode(clienteModel.toJson());
 
-    final q = query.toLowerCase();
-    return _clientes.where((c) {
-      return c.nome.toLowerCase().contains(q) ||
-          c.email.toLowerCase().contains(q) ||
-          c.cidade.toLowerCase().contains(q);
-    }).toList();
+      final response = await _client
+          .post(
+            Uri.parse(ApiConfig.clientesEndpoint),
+            headers: ApiConfig.headers,
+            body: body,
+          )
+          .timeout(ApiConfig.timeout);
+
+      return _handleResponse<Cliente>(
+        response,
+        onSuccess: (data) => ClienteModel.fromJson(data['data']).toEntity(),
+      );
+    } on SocketException {
+      throw NetworkException();
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Erro ao criar cliente: $e');
+    }
+  }
+
+  @override
+  Future<Cliente> updateCliente(int id, Cliente cliente) async {
+    try {
+      final clienteModel = ClienteModel.fromEntity(cliente);
+      final body = jsonEncode(clienteModel.toJson());
+
+      final response = await _client
+          .put(
+            Uri.parse('${ApiConfig.clientesEndpoint}/$id'),
+            headers: ApiConfig.headers,
+            body: body,
+          )
+          .timeout(ApiConfig.timeout);
+
+      return _handleResponse<Cliente>(
+        response,
+        onSuccess: (data) => ClienteModel.fromJson(data['data']).toEntity(),
+      );
+    } on SocketException {
+      throw NetworkException();
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Erro ao atualizar cliente: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteCliente(int id) async {
+    try {
+      final response = await _client
+          .delete(
+            Uri.parse('${ApiConfig.clientesEndpoint}/$id'),
+            headers: ApiConfig.headers,
+          )
+          .timeout(ApiConfig.timeout);
+
+      _handleResponse<void>(response, onSuccess: (_) => null);
+    } on SocketException {
+      throw NetworkException();
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Erro ao excluir cliente: $e');
+    }
+  }
+
+  @override
+  Future<List<Cliente>> searchClientes(String query) async {
+    try {
+      final uri = Uri.parse(
+        ApiConfig.clientesEndpoint,
+      ).replace(queryParameters: {'nome': query});
+
+      final response = await _client
+          .get(uri, headers: ApiConfig.headers)
+          .timeout(ApiConfig.timeout);
+
+      return _handleResponse<List<Cliente>>(
+        response,
+        onSuccess: (data) {
+          final clientesJson = data['data'] as List;
+          return clientesJson
+              .map((json) => ClienteModel.fromJson(json).toEntity())
+              .toList();
+        },
+      );
+    } on SocketException {
+      throw NetworkException();
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Erro ao buscar clientes: $e');
+    }
+  }
+
+  T _handleResponse<T>(
+    http.Response response, {
+    required T Function(Map<String, dynamic> data) onSuccess,
+  }) {
+    final statusCode = response.statusCode;
+
+    try {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      switch (statusCode) {
+        case 200:
+        case 201:
+          return onSuccess(data);
+        case 400:
+          throw ValidationException(
+            message: data['message'] ?? 'Erro de validação',
+            details: data['errors'] ?? data['campos'],
+          );
+        case 404:
+          throw NotFoundException(
+            message: data['message'] ?? 'Cliente não encontrado',
+          );
+        case 409:
+          throw ConflictException(
+            message: data['message'] ?? 'E-mail já cadastrado',
+          );
+        case 500:
+          throw ServerException(
+            message: data['message'] ?? 'Erro interno do servidor',
+            statusCode: statusCode,
+          );
+        default:
+          throw ServerException(
+            message: 'Erro inesperado: ${data['message']}',
+            statusCode: statusCode,
+            details: data,
+          );
+      }
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ServerException(
+        message: 'Erro ao processar resposta do servidor',
+        statusCode: statusCode,
+        details: response.body,
+      );
+    }
+  }
+
+  void dispose() {
+    _client.close();
   }
 }

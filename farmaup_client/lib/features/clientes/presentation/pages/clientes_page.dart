@@ -1,6 +1,6 @@
-// TODO Implement this library.
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/exceptions/api_exceptions.dart';
 import '../../data/repositories/cliente_repository_impl.dart';
 import '../../domain/entities/cliente.dart';
 import '../controllers/clientes_controller.dart';
@@ -21,11 +21,56 @@ class ClientesPage extends StatefulWidget {
 class _ClientesPageState extends State<ClientesPage> {
   late final ClientesController _controller;
   final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _controller = ClientesController(repository: ClienteRepositoryImpl());
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      await _controller.loadClientes();
+    } on ApiException catch (e) {
+      if (mounted) {
+        _showErrorSnackBar(e.message);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Erro ao carregar clientes');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        action: SnackBarAction(
+          label: 'Tentar novamente',
+          textColor: Colors.white,
+          onPressed: _loadData,
+        ),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -35,12 +80,17 @@ class _ClientesPageState extends State<ClientesPage> {
   }
 
   Future<void> _openNewClient() async {
-    final novo = await Navigator.of(
+    final created = await Navigator.of(
       context,
-    ).push<Cliente>(MaterialPageRoute(builder: (_) => const NewClientPage()));
+    ).push<bool>(MaterialPageRoute(builder: (_) => const NewClientPage()));
 
-    if (novo != null) {
-      setState(() => _controller.addCliente(novo));
+    if (created == true && mounted) {
+      try {
+        await _loadData(); // recarrega lista do servidor (ou usar _controller.loadClientes())
+        _showSuccessSnackBar('Cliente criado com sucesso!');
+      } catch (e) {
+        _showErrorSnackBar('Cliente criado, mas falha ao atualizar lista.');
+      }
     }
   }
 
@@ -54,13 +104,11 @@ class _ClientesPageState extends State<ClientesPage> {
     );
 
     if (result != null && mounted) {
-      setState(() {
-        if (result.deleted) {
-          _controller.deleteCliente(originalIndex);
-        } else if (result.updated != null) {
-          _controller.updateCliente(originalIndex, result.updated!);
-        }
-      });
+      if (result.deleted) {
+        await _handleDelete(originalIndex);
+      } else if (result.updated != null) {
+        await _handleUpdate(originalIndex, result.updated!);
+      }
     }
   }
 
@@ -71,13 +119,26 @@ class _ClientesPageState extends State<ClientesPage> {
     );
 
     if (updated != null && mounted) {
-      setState(() {
-        if (updated.nome.isEmpty) {
-          _controller.deleteCliente(originalIndex);
-        } else {
-          _controller.updateCliente(originalIndex, updated);
-        }
-      });
+      await _handleUpdate(originalIndex, updated);
+    }
+  }
+
+  Future<void> _handleUpdate(int originalIndex, Cliente cliente) async {
+    try {
+      await _controller.updateCliente(originalIndex, cliente);
+      setState(() {});
+      _showSuccessSnackBar('Cliente atualizado com sucesso!');
+    } on ConflictException catch (e) {
+      _showErrorSnackBar(e.message);
+    } on ValidationException catch (e) {
+      _showErrorSnackBar(e.message);
+    } on NotFoundException {
+      _showErrorSnackBar('Cliente não encontrado');
+      await _loadData();
+    } on ApiException catch (e) {
+      _showErrorSnackBar(e.message);
+    } catch (e) {
+      _showErrorSnackBar('Erro ao atualizar cliente');
     }
   }
 
@@ -90,7 +151,22 @@ class _ClientesPageState extends State<ClientesPage> {
     );
 
     if (confirmed == true && mounted) {
-      setState(() => _controller.deleteCliente(originalIndex));
+      await _handleDelete(originalIndex);
+    }
+  }
+
+  Future<void> _handleDelete(int originalIndex) async {
+    try {
+      await _controller.deleteCliente(originalIndex);
+      setState(() {});
+      _showSuccessSnackBar('Cliente excluído com sucesso!');
+    } on NotFoundException {
+      _showErrorSnackBar('Cliente não encontrado');
+      await _loadData();
+    } on ApiException catch (e) {
+      _showErrorSnackBar(e.message);
+    } catch (e) {
+      _showErrorSnackBar('Erro ao excluir cliente');
     }
   }
 
@@ -98,23 +174,38 @@ class _ClientesPageState extends State<ClientesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const PharmaIAAppBar(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 18),
-                _buildSearchBar(),
-                const SizedBox(height: 18),
-                _buildResultsCount(),
-                const SizedBox(height: 8),
-                _buildDataTable(),
-                const SizedBox(height: 36),
-              ],
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 18),
+                  _buildSearchBar(),
+                  const SizedBox(height: 18),
+                  if (_isLoading)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (_controller.clientes.isEmpty)
+                    _buildEmptyState()
+                  else ...[
+                    _buildResultsCount(),
+                    const SizedBox(height: 8),
+                    _buildDataTable(),
+                  ],
+                  const SizedBox(height: 36),
+                ],
+              ),
             ),
           ),
         ),
@@ -189,6 +280,36 @@ class _ClientesPageState extends State<ClientesPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(48.0),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'Nenhum cliente cadastrado',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Comece adicionando seu primeiro cliente',
+                style: TextStyle(color: Colors.grey[500]),
+              ),
+            ],
+          ),
         ),
       ),
     );

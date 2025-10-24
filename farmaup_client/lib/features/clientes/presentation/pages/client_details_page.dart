@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/cliente.dart';
+import '../widgets/app_bar_widget.dart';
 import '../widgets/labeled_field.dart';
 import 'delete_confirmation_page.dart';
 import 'edit_client_page.dart';
@@ -13,7 +12,7 @@ class ClientDetailsResult {
   ClientDetailsResult({this.deleted = false, this.updated});
 }
 
-class ClientDetailsPage extends StatefulWidget {
+class ClientDetailsPage extends StatelessWidget {
   final Cliente cliente;
   final int originalIndex;
 
@@ -23,108 +22,47 @@ class ClientDetailsPage extends StatefulWidget {
     required this.originalIndex,
   }) : super(key: key);
 
-  @override
-  State<ClientDetailsPage> createState() => _ClientDetailsPageState();
-}
-
-class _ClientDetailsPageState extends State<ClientDetailsPage> {
-  late Cliente _editable;
-  late TextEditingController _nomeController;
-  late TextEditingController _emailController;
-  late TextEditingController _telefoneController;
-  late TextEditingController _cidadeController;
-
-  @override
-  void initState() {
-    super.initState();
-    _editable = widget.cliente.copyWith();
-    _nomeController = TextEditingController(text: _editable.nome);
-    _emailController = TextEditingController(text: _editable.email);
-    _telefoneController = TextEditingController(text: _editable.telefone);
-    _cidadeController = TextEditingController(text: _editable.cidade);
-  }
-
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _emailController.dispose();
-    _telefoneController.dispose();
-    _cidadeController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _openEdit() async {
+  Future<void> _editCliente(BuildContext context) async {
     final updated = await Navigator.of(context).push<Cliente>(
-      MaterialPageRoute(builder: (_) => EditClientPage(cliente: _editable)),
+      MaterialPageRoute(builder: (_) => EditClientPage(cliente: cliente)),
     );
 
-    if (updated != null && mounted) {
-      setState(() {
-        _editable = updated;
-        _nomeController.text = updated.nome;
-        _emailController.text = updated.email;
-        _telefoneController.text = updated.telefone;
-        _cidadeController.text = updated.cidade;
-      });
+    if (updated != null && context.mounted) {
+      Navigator.of(context).pop(ClientDetailsResult(updated: updated));
     }
   }
 
-  Future<void> _confirmDeleteFromDetails() async {
+  Future<void> _deleteCliente(BuildContext context) async {
     final confirmed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => DeleteConfirmationPage(cliente: _editable),
+        builder: (_) => DeleteConfirmationPage(cliente: cliente),
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed == true && context.mounted) {
       Navigator.of(context).pop(ClientDetailsResult(deleted: true));
     }
-  }
-
-  void _saveAndReturn() {
-    Navigator.of(context).pop(ClientDetailsResult(updated: _editable));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Row(
-          children: const [
-            Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black54),
-            SizedBox(width: 6),
-            Text(
-              'Voltar para Clientes',
-              style: TextStyle(color: Colors.black87),
-            ),
-          ],
-        ),
-      ),
+      appBar: const PharmaIAAppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.all(24),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
+            constraints: const BoxConstraints(maxWidth: 700),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 8),
-                const Text(
-                  'Detalhes do Cliente',
-                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Visualize as informações do cliente',
-                  style: TextStyle(color: Colors.black54),
-                ),
-                const SizedBox(height: 18),
-                _buildDetailsCard(),
-                const SizedBox(height: 18),
-                _buildDangerZone(),
-                const SizedBox(height: 36),
+                _buildHeader(context),
+                const SizedBox(height: 24),
+                _buildInfoCard(),
+                const SizedBox(height: 16),
+                _buildMetadataCard(),
+                const SizedBox(height: 24),
+                _buildActions(context),
               ],
             ),
           ),
@@ -133,190 +71,192 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
     );
   }
 
-  Widget _buildDetailsCard() {
+  Widget _buildHeader(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.red[50],
       child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(20),
+        child: Row(
           children: [
-            LabeledField(
-              label: 'Nome Completo *',
-              child: TextFormField(
-                controller: _nomeController,
-                readOnly: true,
-                decoration: _inputDecoration(),
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.red,
+              child: Text(
+                cliente.nome.isNotEmpty ? cliente.nome[0].toUpperCase() : '?',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            LabeledField(
-              label: 'Email *',
-              child: TextFormField(
-                controller: _emailController,
-                readOnly: true,
-                decoration: _inputDecoration(),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cliente.nome,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: cliente.ativo ? Colors.green : Colors.grey,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          cliente.ativo ? 'ATIVO' : 'INATIVO',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (cliente.id != null) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          'ID: ${cliente.id}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            LabeledField(
-              label: 'Telefone *',
-              child: TextFormField(
-                controller: _telefoneController,
-                readOnly: true,
-                decoration: _inputDecoration(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            LabeledField(
-              label: 'Cidade *',
-              child: TextFormField(
-                controller: _cidadeController,
-                readOnly: true,
-                decoration: _inputDecoration(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildStatusSection(),
-            const SizedBox(height: 14),
-            _buildDateSection(),
-            const SizedBox(height: 18),
-            const Divider(),
-            const SizedBox(height: 12),
-            _buildActions(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusSection() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.cardPink,
-        borderRadius: BorderRadius.circular(8),
+  Widget _buildInfoCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Informações de Contato',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(height: 24),
+            LabeledField(
+              label: 'E-mail',
+              value: cliente.email,
+              icon: Icons.email,
+            ),
+            const SizedBox(height: 16),
+            LabeledField(
+              label: 'Telefone',
+              value: cliente.telefone,
+              icon: Icons.phone,
+            ),
+            const SizedBox(height: 16),
+            LabeledField(
+              label: 'Cidade',
+              value: cliente.cidade,
+              icon: Icons.location_city,
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                'Status do Cliente',
-                style: TextStyle(fontWeight: FontWeight.w600),
+    );
+  }
+
+  Widget _buildMetadataCard() {
+    if (cliente.dataCadastro == null && cliente.dataAtualizacao == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Informações do Sistema',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(height: 24),
+            if (cliente.dataCadastro != null) ...[
+              LabeledField(
+                label: 'Data de Cadastro',
+                value: _formatDate(cliente.dataCadastro!),
+                icon: Icons.calendar_today,
               ),
-              SizedBox(height: 4),
-              Text(
-                'Cliente ativo no sistema',
-                style: TextStyle(color: Colors.black54),
-              ),
+              if (cliente.dataAtualizacao != null) const SizedBox(height: 16),
             ],
-          ),
-          Switch(
-            value: _editable.ativo,
-            onChanged: (v) => setState(() {
-              _editable = _editable.copyWith(ativo: v);
-            }),
-            activeThumbColor: AppColors.switchThumb,
-            activeTrackColor: AppColors.switchActiveTrack,
-            inactiveThumbColor: AppColors.switchThumb,
-            inactiveTrackColor: AppColors.switchInactiveTrack,
-          ),
-        ],
+            if (cliente.dataAtualizacao != null)
+              LabeledField(
+                label: 'Última Atualização',
+                value: _formatDate(cliente.dataAtualizacao!),
+                icon: Icons.update,
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildDateSection() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.cardPink,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Data de Cadastro',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _editable.dataCadastro != null
-                ? DateFormatter.formatBrazilianDate(_editable.dataCadastro!)
-                : '—',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActions() {
+  Widget _buildActions(BuildContext context) {
     return Row(
       children: [
-        OutlinedButton.icon(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close),
-          label: const Text('Cancelar'),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('Voltar'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
         ),
         const SizedBox(width: 12),
-        ElevatedButton.icon(
-          onPressed: _openEdit,
-          icon: const Icon(Icons.edit),
-          label: const Text('Editar Cliente'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => _editCliente(context),
+            icon: const Icon(Icons.edit),
+            label: const Text('Editar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => _deleteCliente(context),
+            icon: const Icon(Icons.delete),
+            label: const Text('Excluir'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildDangerZone() {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColors.dangerZoneBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Zona de Perigo',
-              style: TextStyle(
-                color: AppColors.dangerZoneText,
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Esta ação não pode ser desfeita. O cliente será permanentemente excluído.',
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _confirmDeleteFromDetails,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Excluir Cliente'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration() {
-    return const InputDecoration(
-      filled: true,
-      fillColor: AppColors.inputGray,
-      border: OutlineInputBorder(
-        borderSide: BorderSide.none,
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-      ),
-      contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-    );
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

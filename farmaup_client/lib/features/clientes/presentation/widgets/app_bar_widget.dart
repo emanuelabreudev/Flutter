@@ -31,14 +31,33 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
       actions: isMobile || isTablet
           ? [
-              IconButton(
-                icon: const Icon(Icons.person_outline_rounded),
-                onPressed: () => _showUserMenu(context),
-                tooltip: 'Perfil',
+              // Agora o botão de perfil mobile usa a mesma estilização do desktop (avatar circular)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  onTap: () => _showUserMenu(context),
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: AppColors.primary,
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: AppSpacing.xs),
             ]
-          : null,
+          : [
+              // No desktop exibimos o avatar+nome e abrimos um PopupMenu (com mesmo conteúdo estilizado do modal)
+              _buildUserAvatarButton(context),
+              const SizedBox(width: AppSpacing.sm),
+            ],
     );
   }
 
@@ -86,7 +105,7 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  // ============ DESKTOP MENU ============
+  // ============ DESKTOP MENU (links + ações) ============
   Widget _buildDesktopMenu(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -264,6 +283,7 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   // ============ USER MENU (Mobile/Tablet) ============
+  /// Mobile/tablet continua abrindo o bottom sheet para consistência com UX móvel.
   void _showUserMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -289,16 +309,17 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
 
-            // Avatar e informações
+            // Avatar e informações — usa a mesma estilização do avatar do AppBar (desktop)
             Row(
               children: [
-                CircleAvatar(
-                  radius: 32,
+                const CircleAvatar(
+                  radius:
+                      18, // UNIFICADO: mesmo raio usado no AppBar desktop/mobile
                   backgroundColor: AppColors.primary,
-                  child: const Icon(
+                  child: Icon(
                     Icons.person_rounded,
                     color: Colors.white,
-                    size: 32,
+                    size: 18,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -307,12 +328,12 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Usuário',
+                        'Emanuel Abreu',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'usuario@pharma.com',
+                        'emanuelabreudev@gmail.com',
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
@@ -326,7 +347,7 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
             const Divider(height: 1),
             const SizedBox(height: AppSpacing.md),
 
-            // Opções de usuário
+            // Opções de usuário (mesmo visual do drawer)
             _buildDrawerItem(
               context,
               icon: Icons.person_outline_rounded,
@@ -355,6 +376,124 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // ============ USER AVATAR BUTTON (Desktop) ============
+  /// No desktop abrimos um PopupMenu (com conteúdo equivalente ao modal) — padrão web.
+  Widget _buildUserAvatarButton(BuildContext context) {
+    const String userName = 'Emanuel Abreu';
+    const String userEmail = 'emanuelabreudev@gmail.com';
+
+    return PopupMenuButton<int>(
+      tooltip: 'Perfil',
+      color: Colors.white, // fundo branco do menu no desktop
+      elevation: 4,
+      offset: const Offset(0, 48),
+      // child mostra avatar + nome reduzido no AppBar
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.primary,
+              child: Icon(Icons.person_rounded, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            // Nome do usuário (limitado)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: const Text(
+                userName,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.dark,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+          ],
+        ),
+      ),
+      itemBuilder: (context) => [
+        // Cabeçalho com avatar + nome/email (não selecionável)
+        PopupMenuItem<int>(
+          enabled: false,
+          child: Row(
+            children: [
+              const CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.primary,
+                child: Icon(
+                  Icons.person_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      userEmail,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<int>(
+          value: 0,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.person_outline_rounded),
+            title: const Text('Meu Perfil'),
+          ),
+        ),
+        PopupMenuItem<int>(
+          value: 1,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.settings_outlined),
+            title: const Text('Configurações'),
+          ),
+        ),
+        PopupMenuItem<int>(
+          value: 2,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.logout_rounded),
+            title: const Text('Sair'),
+          ),
+        ),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case 0:
+            // Navigator.pushNamed(context, '/perfil');
+            break;
+          case 1:
+            // Navigator.pushNamed(context, '/configuracoes');
+            break;
+          case 2:
+            // AuthService.logout();
+            break;
+        }
+      },
     );
   }
 }

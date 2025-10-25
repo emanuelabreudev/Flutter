@@ -6,11 +6,11 @@ class LoadingOverlay extends StatelessWidget {
   final Widget child;
 
   const LoadingOverlay({
-    Key? key,
+    super.key,
     this.message,
     required this.isLoading,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -85,13 +85,13 @@ class EmptyStateWidget extends StatelessWidget {
   final String? actionLabel;
 
   const EmptyStateWidget({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     this.subtitle,
     this.onActionPressed,
     this.actionLabel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -139,8 +139,7 @@ class ErrorStateWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  const ErrorStateWidget({Key? key, required this.message, this.onRetry})
-    : super(key: key);
+  const ErrorStateWidget({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {

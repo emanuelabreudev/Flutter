@@ -22,10 +22,10 @@ class ClientDetailsPage extends StatelessWidget {
   final int originalIndex;
 
   const ClientDetailsPage({
-    Key? key,
+    super.key,
     required this.cliente,
     required this.originalIndex,
-  }) : super(key: key);
+  });
 
   Future<void> _editCliente(BuildContext context) async {
     final updated = await Navigator.of(context).push<Cliente>(

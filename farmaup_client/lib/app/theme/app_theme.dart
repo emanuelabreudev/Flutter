@@ -254,20 +254,25 @@ class AppTheme {
             ),
             minimumSize: const Size(0, 48),
           ).copyWith(
-            elevation: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.hovered))
+            elevation: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.hovered)) {
                 return AppElevation.md;
-              if (states.contains(MaterialState.pressed))
+              }
+              if (states.contains(WidgetState.pressed)) {
                 return AppElevation.sm;
+              }
               return AppElevation.none;
             }),
-            backgroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.disabled))
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
                 return AppColors.mutedLight;
-              if (states.contains(MaterialState.hovered))
+              }
+              if (states.contains(WidgetState.hovered)) {
                 return AppColors.primaryDark;
-              if (states.contains(MaterialState.pressed))
+              }
+              if (states.contains(WidgetState.pressed)) {
                 return AppColors.primaryDark;
+              }
               return AppColors.primary;
             }),
           ),
@@ -295,15 +300,16 @@ class AppTheme {
             ),
             minimumSize: const Size(0, 48),
           ).copyWith(
-            backgroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.hovered)) {
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.hovered)) {
                 return AppColors.primary.withOpacity(0.05);
               }
               return Colors.transparent;
             }),
-            foregroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.disabled))
+            foregroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
                 return AppColors.mutedLight;
+              }
               return AppColors.primary;
             }),
           ),
@@ -326,14 +332,16 @@ class AppTheme {
             ),
             minimumSize: const Size(0, 40),
           ).copyWith(
-            foregroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.disabled))
+            foregroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
                 return AppColors.mutedLight;
-              if (states.contains(MaterialState.hovered))
+              }
+              if (states.contains(WidgetState.hovered)) {
                 return AppColors.primary;
+              }
               return AppColors.dark;
             }),
-            overlayColor: MaterialStateProperty.all(
+            overlayColor: WidgetStateProperty.all(
               AppColors.primary.withOpacity(0.05),
             ),
           ),

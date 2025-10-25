@@ -4,7 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 /// AppBar responsiva da aplicação PharmaIA
 /// Implementa menu hambúrguer para mobile e navegação completa para desktop
 class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const PharmaIAAppBar({Key? key}) : super(key: key);
+  const PharmaIAAppBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(72);

@@ -34,7 +34,7 @@ class PhoneFormatter {
     final buffer = StringBuffer();
 
     // Adiciona DDD
-    if (numbers.length >= 1) {
+    if (numbers.isNotEmpty) {
       buffer.write('(');
       buffer.write(
         numbers.substring(0, numbers.length >= 2 ? 2 : numbers.length),

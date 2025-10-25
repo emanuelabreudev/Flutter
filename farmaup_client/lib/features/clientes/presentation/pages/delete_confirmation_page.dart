@@ -8,8 +8,7 @@ import '../widgets/app_bar_widget.dart';
 class DeleteConfirmationPage extends StatelessWidget {
   final Cliente cliente;
 
-  const DeleteConfirmationPage({Key? key, required this.cliente})
-    : super(key: key);
+  const DeleteConfirmationPage({super.key, required this.cliente});
 
   @override
   Widget build(BuildContext context) {

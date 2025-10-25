@@ -124,7 +124,7 @@ class ClienteRepositoryImpl implements ClienteRepository {
           )
           .timeout(ApiConfig.timeout);
 
-      _handleResponse<void>(response, onSuccess: (_) => null);
+      _handleResponse<void>(response, onSuccess: (_) {});
     } on SocketException {
       throw NetworkException();
     } catch (e) {

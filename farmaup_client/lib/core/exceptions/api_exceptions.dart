@@ -15,21 +15,13 @@ class NetworkException extends ApiException {
 }
 
 class ServerException extends ApiException {
-  ServerException({String? message, int? statusCode, dynamic details})
-    : super(
-        message: message ?? 'Erro no servidor',
-        statusCode: statusCode,
-        details: details,
-      );
+  ServerException({String? message, super.statusCode, super.details})
+    : super(message: message ?? 'Erro no servidor');
 }
 
 class ValidationException extends ApiException {
-  ValidationException({String? message, dynamic details})
-    : super(
-        message: message ?? 'Erro de validação',
-        statusCode: 400,
-        details: details,
-      );
+  ValidationException({String? message, super.details})
+    : super(message: message ?? 'Erro de validação', statusCode: 400);
 }
 
 class NotFoundException extends ApiException {

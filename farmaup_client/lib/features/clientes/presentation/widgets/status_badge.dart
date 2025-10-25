@@ -6,7 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 class StatusBadge extends StatelessWidget {
   final bool ativo;
 
-  const StatusBadge({Key? key, required this.ativo}) : super(key: key);
+  const StatusBadge({super.key, required this.ativo});
 
   @override
   Widget build(BuildContext context) {

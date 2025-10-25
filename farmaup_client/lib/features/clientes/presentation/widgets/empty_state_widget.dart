@@ -6,8 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 class EmptyStateWidget extends StatelessWidget {
   final VoidCallback onAddClient;
 
-  const EmptyStateWidget({Key? key, required this.onAddClient})
-    : super(key: key);
+  const EmptyStateWidget({super.key, required this.onAddClient});
 
   @override
   Widget build(BuildContext context) {

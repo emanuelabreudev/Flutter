@@ -17,7 +17,7 @@ import 'new_client_page.dart';
 /// Página principal de gerenciamento de clientes
 /// Implementa responsividade (mobile/tablet/desktop) e animações suaves
 class ClientesPage extends StatefulWidget {
-  const ClientesPage({Key? key}) : super(key: key);
+  const ClientesPage({super.key});
 
   @override
   State<ClientesPage> createState() => _ClientesPageState();
@@ -500,7 +500,7 @@ class _ClientesPageState extends State<ClientesPage>
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
-            headingRowColor: MaterialStateProperty.all(AppColors.headerPink),
+            headingRowColor: WidgetStateProperty.all(AppColors.headerPink),
             headingRowHeight: 56,
             dataRowHeight: 72,
             horizontalMargin: AppSpacing.lg,

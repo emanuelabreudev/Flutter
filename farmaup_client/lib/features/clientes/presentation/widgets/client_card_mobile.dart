@@ -12,12 +12,12 @@ class ClientCardMobile extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const ClientCardMobile({
-    Key? key,
+    super.key,
     required this.cliente,
     this.onTap,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

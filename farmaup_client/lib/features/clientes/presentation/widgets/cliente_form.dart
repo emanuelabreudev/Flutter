@@ -15,7 +15,7 @@ class ClientForm extends StatelessWidget {
   final String? cidadeHint;
 
   const ClientForm({
-    Key? key,
+    super.key,
     required this.nomeController,
     required this.emailController,
     required this.telefoneController,
@@ -27,7 +27,7 @@ class ClientForm extends StatelessWidget {
     this.emailHint,
     this.telefoneHint,
     this.cidadeHint,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +174,7 @@ class ClientForm extends StatelessWidget {
           Switch(
             value: ativo,
             onChanged: onAtivoChanged,
-            activeColor: AppColors.activeText,
+            activeThumbColor: AppColors.activeText,
           ),
         ],
       ),

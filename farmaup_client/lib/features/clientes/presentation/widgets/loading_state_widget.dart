@@ -6,7 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 class LoadingStateWidget extends StatelessWidget {
   final String? message;
 
-  const LoadingStateWidget({Key? key, this.message}) : super(key: key);
+  const LoadingStateWidget({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {

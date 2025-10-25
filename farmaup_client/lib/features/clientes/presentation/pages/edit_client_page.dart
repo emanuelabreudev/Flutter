@@ -9,7 +9,7 @@ import '../widgets/app_bar_widget.dart';
 class EditClientPage extends StatefulWidget {
   final Cliente cliente;
 
-  const EditClientPage({Key? key, required this.cliente}) : super(key: key);
+  const EditClientPage({super.key, required this.cliente});
 
   @override
   State<EditClientPage> createState() => _EditClientPageState();
@@ -311,7 +311,7 @@ class _EditClientPageState extends State<EditClientPage> {
                     Switch(
                       value: _ativo,
                       onChanged: (value) => setState(() => _ativo = value),
-                      activeColor: AppColors.activeText,
+                      activeThumbColor: AppColors.activeText,
                     ),
                   ],
                 ),

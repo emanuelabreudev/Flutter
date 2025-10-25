@@ -10,7 +10,7 @@ import '../widgets/app_bar_widget.dart';
 /// Página de cadastro de novo cliente
 /// Implementa validação de formulário e tratamento de erros
 class NewClientPage extends StatefulWidget {
-  const NewClientPage({Key? key}) : super(key: key);
+  const NewClientPage({super.key});
 
   @override
   State<NewClientPage> createState() => _NewClientPageState();
@@ -52,7 +52,7 @@ class _NewClientPageState extends State<NewClientPage> {
             if (campo != null && mensagem != null) result[campo] = mensagem;
           } else {
             final text = item.values.join(' ');
-            result['__global__'] = (result['__global__'] ?? '') + ' ' + text;
+            result['__global__'] = '${result['__global__'] ?? ''} $text';
           }
         }
       }
@@ -461,7 +461,7 @@ class _NewClientPageState extends State<NewClientPage> {
                       onChanged: _isLoading
                           ? null
                           : (value) => setState(() => _ativo = value),
-                      activeColor: AppColors.activeText,
+                      activeThumbColor: AppColors.activeText,
                     ),
                   ],
                 ),

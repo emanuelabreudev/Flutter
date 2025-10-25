@@ -452,7 +452,7 @@ class _ClientesPageState extends State<ClientesPage>
         ),
         if (isFiltered)
           Text(
-            'de $total total',
+            'de $total no total',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: AppColors.muted),

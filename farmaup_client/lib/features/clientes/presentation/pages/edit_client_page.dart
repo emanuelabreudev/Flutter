@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/cliente.dart';
 import '../widgets/app_bar_widget.dart';
 
+/// Página de edição de cliente
+/// Implementa responsividade e validação de formulário
 class EditClientPage extends StatefulWidget {
   final Cliente cliente;
 
@@ -55,197 +59,25 @@ class _EditClientPageState extends State<EditClientPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = AppBreakpoints.isMobile(context);
+
     return Scaffold(
       appBar: const PharmaIAAppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? AppSpacing.md : AppSpacing.xl,
+          vertical: isMobile ? AppSpacing.lg : AppSpacing.xl,
+        ),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.edit, size: 28),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text(
-                              'Editar Cliente',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (widget.cliente.id != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            'ID: ${widget.cliente.id}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        controller: _nomeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nome Completo *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Nome é obrigatório';
-                          }
-                          if (value.trim().length < 3) {
-                            return 'Nome deve ter pelo menos 3 caracteres';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'E-mail *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.email),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'E-mail é obrigatório';
-                          }
-                          if (!RegExp(
-                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                          ).hasMatch(value)) {
-                            return 'E-mail inválido';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _telefoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Telefone *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.phone),
-                          hintText: 'Apenas números (10 ou 11 dígitos)',
-                        ),
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Telefone é obrigatório';
-                          }
-                          final numeros = value.replaceAll(
-                            RegExp(r'[^0-9]'),
-                            '',
-                          );
-                          if (numeros.length < 10 || numeros.length > 11) {
-                            return 'Telefone deve ter 10 ou 11 dígitos';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _cidadeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Cidade *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.location_city),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Cidade é obrigatória';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: const Text('Cliente Ativo'),
-                        subtitle: Text(
-                          _ativo
-                              ? 'Cliente ativo no sistema'
-                              : 'Cliente inativo',
-                        ),
-                        value: _ativo,
-                        onChanged: (value) => setState(() => _ativo = value),
-                      ),
-                      if (widget.cliente.dataCadastro != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Cadastrado em: ${_formatDate(widget.cliente.dataCadastro!)}',
-                                  style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                if (widget.cliente.dataAtualizacao != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: Text(
-                                      'Última atualização: ${_formatDate(widget.cliente.dataAtualizacao!)}',
-                                      style: TextStyle(
-                                        color: Colors.grey[700],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Cancelar'),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            onPressed: _salvar,
-                            icon: const Icon(Icons.save),
-                            label: const Text('Salvar Alterações'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, isMobile),
+                const SizedBox(height: AppSpacing.xl),
+                _buildFormCard(context, isMobile),
+              ],
             ),
           ),
         ),
@@ -253,7 +85,353 @@ class _EditClientPageState extends State<EditClientPage> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  // ============ HEADER ============
+  Widget _buildHeader(BuildContext context, bool isMobile) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? AppSpacing.lg : AppSpacing.xl),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.cardPink, AppColors.primarySoft],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.edit_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Editar Cliente',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                if (widget.cliente.id != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'ID: ${widget.cliente.id}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============ FORM CARD ============
+  Widget _buildFormCard(BuildContext context, bool isMobile) {
+    return Card(
+      elevation: AppElevation.sm,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(isMobile ? AppSpacing.lg : AppSpacing.xl),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Nome
+              TextFormField(
+                controller: _nomeController,
+                decoration: const InputDecoration(
+                  labelText: 'Nome Completo *',
+                  prefixIcon: Icon(Icons.person_rounded),
+                  hintText: 'Digite o nome completo',
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Nome é obrigatório';
+                  }
+                  if (value.trim().length < 3) {
+                    return 'Nome deve ter pelo menos 3 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Email
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'E-mail *',
+                  prefixIcon: Icon(Icons.email_rounded),
+                  hintText: 'exemplo@email.com',
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'E-mail é obrigatório';
+                  }
+                  if (!RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  ).hasMatch(value)) {
+                    return 'E-mail inválido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Telefone
+              TextFormField(
+                controller: _telefoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Telefone *',
+                  prefixIcon: Icon(Icons.phone_rounded),
+                  hintText: '(00) 00000-0000',
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Telefone é obrigatório';
+                  }
+                  final numeros = value.replaceAll(RegExp(r'[^0-9]'), '');
+                  if (numeros.length < 10 || numeros.length > 11) {
+                    return 'Telefone deve ter 10 ou 11 dígitos';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Cidade
+              TextFormField(
+                controller: _cidadeController,
+                decoration: const InputDecoration(
+                  labelText: 'Cidade *',
+                  prefixIcon: Icon(Icons.location_city_rounded),
+                  hintText: 'Digite a cidade',
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Cidade é obrigatória';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppSpacing.xl),
+
+              // Switch de Status
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: _ativo
+                      ? AppColors.activeBackground
+                      : AppColors.inactiveBackground,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: _ativo
+                        ? AppColors.activeText.withOpacity(0.3)
+                        : AppColors.inactiveText.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: _ativo
+                            ? AppColors.activeText
+                            : AppColors.inactiveText,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: Icon(
+                        _ativo ? Icons.check_circle : Icons.cancel,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Status do Cliente',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: _ativo
+                                      ? AppColors.activeText
+                                      : AppColors.inactiveText,
+                                ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _ativo
+                                ? 'Cliente ativo no sistema'
+                                : 'Cliente inativo',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: _ativo
+                                      ? AppColors.activeText
+                                      : AppColors.inactiveText,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _ativo,
+                      onChanged: (value) => setState(() => _ativo = value),
+                      activeColor: AppColors.activeText,
+                    ),
+                  ],
+                ),
+              ),
+
+              // Metadata (se existir)
+              if (widget.cliente.dataCadastro != null) ...[
+                const SizedBox(height: AppSpacing.xl),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.infoLight,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                      color: AppColors.info.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            size: 18,
+                            color: AppColors.info,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Informações do Sistema',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(color: AppColors.info),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _buildInfoRow(
+                        'Cadastrado em',
+                        DateFormatter.formatDateTime(
+                          widget.cliente.dataCadastro!,
+                        ),
+                      ),
+                      if (widget.cliente.dataAtualizacao != null) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        _buildInfoRow(
+                          'Última atualização',
+                          DateFormatter.formatDateTime(
+                            widget.cliente.dataAtualizacao!,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Botões de ação
+              isMobile
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _salvar,
+                          icon: const Icon(Icons.save_rounded),
+                          label: const Text('Salvar Alterações'),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                          label: const Text('Cancelar'),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                          label: const Text('Cancelar'),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        ElevatedButton.icon(
+                          onPressed: _salvar,
+                          icon: const Icon(Icons.save_rounded),
+                          label: const Text('Salvar Alterações'),
+                        ),
+                      ],
+                    ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.info,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.info,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
   }
 }

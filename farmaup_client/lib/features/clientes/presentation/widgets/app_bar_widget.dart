@@ -267,12 +267,16 @@ class PharmaIAAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primary),
+            Icon(
+              icon,
+              // altere aqui — antes era AppColors.primary
+              color: AppColors.dark, // cinza escuro consistente com desktop
+            ),
             const SizedBox(width: AppSpacing.md),
             Text(
               label,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.dark,
+                color: AppColors.dark, // também força o texto a cinza escuro
                 fontWeight: FontWeight.w600,
               ),
             ),

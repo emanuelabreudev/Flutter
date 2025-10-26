@@ -78,7 +78,7 @@ class ClientForm extends StatelessWidget {
           readOnly: readOnly,
           decoration: InputDecoration(
             labelText: 'Telefone *',
-            hintText: telefoneHint ?? '(00) 00000-0000',
+            hintText: telefoneHint ?? '85999999999',
             prefixIcon: const Icon(Icons.phone_rounded),
           ),
           keyboardType: TextInputType.phone,

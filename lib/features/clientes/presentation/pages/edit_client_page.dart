@@ -215,7 +215,7 @@ class _EditClientPageState extends State<EditClientPage> {
                 decoration: const InputDecoration(
                   labelText: 'Telefone *',
                   prefixIcon: Icon(Icons.phone_rounded),
-                  hintText: '(00) 00000-0000',
+                  hintText: '85999999999',
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {

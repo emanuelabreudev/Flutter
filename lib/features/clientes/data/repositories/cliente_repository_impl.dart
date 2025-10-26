@@ -26,9 +26,15 @@ class ClienteRepositoryImpl implements ClienteRepository {
       return _handleResponse<List<Cliente>>(
         response,
         onSuccess: (data) {
-          final clientesJson = data['data'] as List;
+          final responseData = data['data'] as Map<String, dynamic>;
+          final clientesJson = responseData['clientes'] as List;
+
           return clientesJson
-              .map((json) => ClienteModel.fromJson(json).toEntity())
+              .map(
+                (json) => ClienteModel.fromJson(
+                  json as Map<String, dynamic>,
+                ).toEntity(),
+              )
               .toList();
         },
       );
@@ -52,7 +58,10 @@ class ClienteRepositoryImpl implements ClienteRepository {
 
       return _handleResponse<Cliente>(
         response,
-        onSuccess: (data) => ClienteModel.fromJson(data['data']).toEntity(),
+        onSuccess: (data) {
+          final clienteData = data['data'] as Map<String, dynamic>;
+          return ClienteModel.fromJson(clienteData).toEntity();
+        },
       );
     } on SocketException {
       throw NetworkException();
@@ -78,7 +87,10 @@ class ClienteRepositoryImpl implements ClienteRepository {
 
       return _handleResponse<Cliente>(
         response,
-        onSuccess: (data) => ClienteModel.fromJson(data['data']).toEntity(),
+        onSuccess: (data) {
+          final clienteData = data['data'] as Map<String, dynamic>;
+          return ClienteModel.fromJson(clienteData).toEntity();
+        },
       );
     } on SocketException {
       throw NetworkException();
@@ -104,7 +116,10 @@ class ClienteRepositoryImpl implements ClienteRepository {
 
       return _handleResponse<Cliente>(
         response,
-        onSuccess: (data) => ClienteModel.fromJson(data['data']).toEntity(),
+        onSuccess: (data) {
+          final clienteData = data['data'] as Map<String, dynamic>;
+          return ClienteModel.fromJson(clienteData).toEntity();
+        },
       );
     } on SocketException {
       throw NetworkException();
@@ -124,7 +139,7 @@ class ClienteRepositoryImpl implements ClienteRepository {
           )
           .timeout(ApiConfig.timeout);
 
-      _handleResponse<void>(response, onSuccess: (_) {});
+      _handleResponse<void>(response, onSuccess: (_) => null);
     } on SocketException {
       throw NetworkException();
     } catch (e) {
@@ -147,9 +162,15 @@ class ClienteRepositoryImpl implements ClienteRepository {
       return _handleResponse<List<Cliente>>(
         response,
         onSuccess: (data) {
-          final clientesJson = data['data'] as List;
+          final responseData = data['data'] as Map<String, dynamic>;
+          final clientesJson = responseData['clientes'] as List;
+
           return clientesJson
-              .map((json) => ClienteModel.fromJson(json).toEntity())
+              .map(
+                (json) => ClienteModel.fromJson(
+                  json as Map<String, dynamic>,
+                ).toEntity(),
+              )
               .toList();
         },
       );
@@ -170,14 +191,15 @@ class ClienteRepositoryImpl implements ClienteRepository {
     try {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
 
+      if (statusCode >= 200 && statusCode < 300) {
+        return onSuccess(data);
+      }
+
       switch (statusCode) {
-        case 200:
-        case 201:
-          return onSuccess(data);
         case 400:
           throw ValidationException(
             message: data['message'] ?? 'Erro de validação',
-            details: data['errors'] ?? data['campos'],
+            details: data['errors'],
           );
         case 404:
           throw NotFoundException(
@@ -191,16 +213,18 @@ class ClienteRepositoryImpl implements ClienteRepository {
           throw ServerException(
             message: data['message'] ?? 'Erro interno do servidor',
             statusCode: statusCode,
+            details: data['errors'],
           );
         default:
           throw ServerException(
-            message: 'Erro inesperado: ${data['message']}',
+            message: data['message'] ?? 'Erro inesperado',
             statusCode: statusCode,
             details: data,
           );
       }
     } catch (e) {
       if (e is ApiException) rethrow;
+
       throw ServerException(
         message: 'Erro ao processar resposta do servidor',
         statusCode: statusCode,
